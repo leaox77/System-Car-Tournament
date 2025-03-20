@@ -2,7 +2,6 @@ import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import { useState, useEffect } from 'react';
 import Navbar from './components/Navbar';
 import LoadingScreen from './components/LoadingScreen';
-import ComingSoon from './pages/ComingSoon';
 import Home from './pages/Home';
 import Standings from './pages/Standings';
 import Tournaments from './pages/Tournaments';
@@ -13,7 +12,6 @@ function App() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    // Simulate loading time
     const timer = setTimeout(() => {
       setLoading(false);
     }, 2500);
@@ -30,9 +28,7 @@ function App() {
       <div className="min-h-screen bg-dark">
         <Navbar />
         <Routes>
-          <Route path="/" element={<ComingSoon />} />
-          {/* Change to <Home /> when ready */}
-          <Route path="/home" element={<Home />} />
+          <Route path="/" element={<Home />} />
           <Route path="/standings" element={<Standings />} />
           <Route path="/tournaments" element={<Tournaments />} />
           <Route path="/gallery" element={<Gallery />} />

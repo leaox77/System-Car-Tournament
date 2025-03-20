@@ -1,144 +1,157 @@
-import React, { useState } from 'react';
-import axios from 'axios';
+import React, { useEffect, useState } from 'react';
+import { getResultados, addFecha } from '../services/resultadosService';
+import { getAutos } from '../services/autosService';
+import RaceCard from '../components/RaceCard';
 
 const Tournaments = () => {
-  const [races, setRaces] = useState(Array(25).fill(null));
-  const [selectedRace, setSelectedRace] = useState(null);
-  const [isEditing, setIsEditing] = useState(false);
-  const [editForm, setEditForm] = useState({
-    first: '',
-    second: '',
-    third: '',
-    lastThree: ['', '', '']
+  const [resultados, setResultados] = useState([]);
+  const [autos, setAutos] = useState([]);
+  const [isAdding, setIsAdding] = useState(false);
+  const [newFecha, setNewFecha] = useState({
+    numero: '',
+    division_id: 1,
+    ganadores: [],
+    perdedores: [],
   });
 
-  const handleSaveResults = async (raceIndex) => {
-    try {
-      await axios.post('/api/results/update', {
-        raceNumber: raceIndex + 1,
-        results: {
-          top3: [editForm.first, editForm.second, editForm.third],
-          bottom3: editForm.lastThree
-        }
-      });
-      // Refresh race data
-      const response = await axios.get('/api/races');
-      setRaces(response.data);
-      setIsEditing(false);
-      setSelectedRace(null);
-    } catch (error) {
-      console.error('Error updating results:', error);
-    }
+  useEffect(() => {
+    fetchResultados();
+    fetchAutos();
+  }, []);
+
+  const fetchResultados = async () => {
+    const data = await getResultados();
+    setResultados(data);
+  };
+
+  const fetchAutos = async () => {
+    const data = await getAutos();
+    setAutos(data);
+  };
+
+  const handleAddFecha = async () => {
+    await addFecha(newFecha);
+    fetchResultados();
+    setIsAdding(false);
+    setNewFecha({
+      numero: '',
+      division_id: 1,
+      ganadores: [],
+      perdedores: [],
+    });
+  };
+
+  const handleGanadorChange = (index, field, value) => {
+    const updatedGanadores = [...newFecha.ganadores];
+    updatedGanadores[index][field] = value;
+    setNewFecha({ ...newFecha, ganadores: updatedGanadores });
+  };
+
+  const handlePerdedorChange = (index, field, value) => {
+    const updatedPerdedores = [...newFecha.perdedores];
+    updatedPerdedores[index][field] = value;
+    setNewFecha({ ...newFecha, perdedores: updatedPerdedores });
   };
 
   return (
     <div className="container mx-auto px-4 py-8">
-      <div className="flex justify-between items-center mb-8">
-        <h1 className="text-4xl font-bold text-accent">Tournament Dates</h1>
-      </div>
+      <h1 className="text-4xl font-bold text-accent mb-8">Fechas del Torneo</h1>
+
+      <button
+        onClick={() => setIsAdding(!isAdding)}
+        className="bg-secondary hover:bg-secondary/80 text-white px-4 py-2 rounded mb-8"
+      >
+        {isAdding ? 'Cancelar' : 'Agregar Fecha'}
+      </button>
+
+      {isAdding && (
+        <div className="bg-primary/20 rounded-lg p-6 mb-8">
+          <h2 className="text-2xl font-semibold text-light mb-4">Agregar Fecha</h2>
+          <div className="space-y-4">
+            <input
+              type="number"
+              placeholder="Número de Fecha"
+              value={newFecha.numero}
+              onChange={(e) => setNewFecha({ ...newFecha, numero: e.target.value })}
+              className="w-full bg-dark text-white px-4 py-2 rounded"
+            />
+            <select
+              value={newFecha.division_id}
+              onChange={(e) => setNewFecha({ ...newFecha, division_id: e.target.value })}
+              className="w-full bg-dark text-white px-4 py-2 rounded"
+            >
+              <option value={1}>Primera División</option>
+              <option value={2}>Segunda División</option>
+              <option value={3}>Tercera División</option>
+            </select>
+
+            <h3 className="text-xl font-semibold text-accent mt-6">Ganadores</h3>
+            {[1, 2, 3].map((posicion, index) => (
+              <div key={index} className="grid grid-cols-2 gap-4">
+                <select
+                  value={newFecha.ganadores[index]?.auto_id || ''}
+                  onChange={(e) => handleGanadorChange(index, 'auto_id', e.target.value)}
+                  className="bg-dark text-white px-4 py-2 rounded"
+                >
+                  <option value="">Seleccionar Auto</option>
+                  {autos
+                    .filter((auto) => auto.division_id === newFecha.division_id)
+                    .map((auto) => (
+                      <option key={auto.id} value={auto.id}>
+                        {auto.nombre}
+                      </option>
+                    ))}
+                </select>
+                <input
+                  type="number"
+                  placeholder={`Puntos para ${posicion}° lugar`}
+                  value={newFecha.ganadores[index]?.puntos || ''}
+                  onChange={(e) => handleGanadorChange(index, 'puntos', e.target.value)}
+                  className="bg-dark text-white px-4 py-2 rounded"
+                />
+              </div>
+            ))}
+
+            <h3 className="text-xl font-semibold text-accent mt-6">Perdedores</h3>
+            {[1, 2, 3].map((posicion, index) => (
+              <div key={index} className="grid grid-cols-2 gap-4">
+                <select
+                  value={newFecha.perdedores[index]?.auto_id || ''}
+                  onChange={(e) => handlePerdedorChange(index, 'auto_id', e.target.value)}
+                  className="bg-dark text-white px-4 py-2 rounded"
+                >
+                  <option value="">Seleccionar Auto</option>
+                  {autos
+                    .filter((auto) => auto.division_id === newFecha.division_id)
+                    .map((auto) => (
+                      <option key={auto.id} value={auto.id}>
+                        {auto.nombre}
+                      </option>
+                    ))}
+                </select>
+                <input
+                  type="number"
+                  placeholder={`Puntos para ${posicion}° último`}
+                  value={newFecha.perdedores[index]?.puntos || ''}
+                  onChange={(e) => handlePerdedorChange(index, 'puntos', e.target.value)}
+                  className="bg-dark text-white px-4 py-2 rounded"
+                />
+              </div>
+            ))}
+
+            <button
+              onClick={handleAddFecha}
+              className="bg-accent text-dark px-4 py-2 rounded"
+            >
+              Agregar Fecha
+            </button>
+          </div>
+        </div>
+      )}
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {races.map((race, index) => (
-          <div key={index} className="bg-primary/20 rounded-lg p-6">
-            <div className="flex justify-between items-center mb-4">
-              <h2 className="text-2xl font-semibold text-light">Race {index + 1}</h2>
-              <button
-                onClick={() => {
-                  setSelectedRace(index);
-                  setIsEditing(true);
-                }}
-                className="bg-secondary hover:bg-secondary/80 text-white px-3 py-1 rounded text-sm"
-              >
-                Edit
-              </button>
-            </div>
-
-            {selectedRace === index && isEditing ? (
-              <div className="space-y-4">
-                <div>
-                  <h3 className="text-secondary mb-2">Top 3</h3>
-                  <input
-                    type="text"
-                    placeholder="1st Place"
-                    value={editForm.first}
-                    onChange={(e) => setEditForm({ ...editForm, first: e.target.value })}
-                    className="w-full bg-dark text-white px-3 py-2 rounded mb-2"
-                  />
-                  <input
-                    type="text"
-                    placeholder="2nd Place"
-                    value={editForm.second}
-                    onChange={(e) => setEditForm({ ...editForm, second: e.target.value })}
-                    className="w-full bg-dark text-white px-3 py-2 rounded mb-2"
-                  />
-                  <input
-                    type="text"
-                    placeholder="3rd Place"
-                    value={editForm.third}
-                    onChange={(e) => setEditForm({ ...editForm, third: e.target.value })}
-                    className="w-full bg-dark text-white px-3 py-2 rounded"
-                  />
-                </div>
-                <div>
-                  <h3 className="text-secondary mb-2">Bottom 3</h3>
-                  {editForm.lastThree.map((car, i) => (
-                    <input
-                      key={i}
-                      type="text"
-                      placeholder={`${i + 1} from last`}
-                      value={car}
-                      onChange={(e) => {
-                        const newLastThree = [...editForm.lastThree];
-                        newLastThree[i] = e.target.value;
-                        setEditForm({ ...editForm, lastThree: newLastThree });
-                      }}
-                      className="w-full bg-dark text-white px-3 py-2 rounded mb-2"
-                    />
-                  ))}
-                </div>
-                <div className="flex space-x-2">
-                  <button
-                    onClick={() => handleSaveResults(index)}
-                    className="bg-accent text-dark px-4 py-2 rounded flex-1"
-                  >
-                    Save
-                  </button>
-                  <button
-                    onClick={() => {
-                      setIsEditing(false);
-                      setSelectedRace(null);
-                    }}
-                    className="bg-primary text-white px-4 py-2 rounded flex-1"
-                  >
-                    Cancel
-                  </button>
-                </div>
-              </div>
-            ) : (
-              <div className="space-y-4">
-                <div>
-                  <h3 className="text-secondary mb-2">Top 3</h3>
-                  {race?.top3?.length > 0 ? (
-                    race.top3.map((car, i) => (
-                      <p key={i} className="text-white/80">{`${i + 1}. ${car}`}</p>
-                    ))
-                  ) : (
-                    <p className="text-white/80">No results yet</p>
-                  )}
-                </div>
-                <div>
-                  <h3 className="text-secondary mb-2">Bottom 3</h3>
-                  {race?.bottom3?.length > 0 ? (
-                    race.bottom3.map((car, i) => (
-                      <p key={i} className="text-white/80">{`${race.bottom3.length - i}. ${car}`}</p>
-                    ))
-                  ) : (
-                    <p className="text-white/80">No results yet</p>
-                  )}
-                </div>
-              </div>
-            )}
-          </div>
+        {resultados.map((resultado) => (
+          <RaceCard key={resultado.id} resultado={resultado} />
         ))}
       </div>
     </div>
