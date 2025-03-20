@@ -49,5 +49,10 @@ class NoticiaModel {
         $sql = "DELETE FROM noticias WHERE id = $id";
         return $this->conn->query($sql);
     }
+
+    public function addFotoNoticia($noticia_id, $url) {
+        $sql = "INSERT INTO fotos_noticias (noticia_id, url) VALUES ($noticia_id, '$url')";
+        return $this->conn->query($sql);
+    }
 }
 ?>

@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { getAutos, addAuto, updateAuto, deleteAuto } from '../services/autosService';
+import { getAutos, addAuto } from '../services/autosService';
 import CarCard from '../components/CarCard';
 
 const Gallery = () => {
@@ -12,6 +12,7 @@ const Gallery = () => {
     color: '',
     division_id: 1,
   });
+  const [fotos, setFotos] = useState([]);
 
   useEffect(() => {
     fetchAutos();
@@ -23,15 +24,15 @@ const Gallery = () => {
   };
 
   const handleAddAuto = async () => {
-    await addAuto(newAuto);
+    await addAuto(newAuto, fotos);
     fetchAutos();
     setIsAdding(false);
     setNewAuto({ nombre: '', marca: '', anio: '', color: '', division_id: 1 });
+    setFotos([]);
   };
 
-  const handleDeleteAuto = async (id) => {
-    await deleteAuto(id);
-    fetchAutos();
+  const handleFileChange = (e) => {
+    setFotos([...e.target.files]);
   };
 
   return (
@@ -86,6 +87,12 @@ const Gallery = () => {
               <option value={2}>Segunda División</option>
               <option value={3}>Tercera División</option>
             </select>
+            <input
+              type="file"
+              multiple
+              onChange={handleFileChange}
+              className="bg-dark text-white px-4 py-2 rounded"
+            />
             <button
               onClick={handleAddAuto}
               className="bg-accent text-dark px-4 py-2 rounded"
@@ -98,7 +105,7 @@ const Gallery = () => {
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         {autos.map((auto) => (
-          <CarCard key={auto.id} car={auto} onDelete={handleDeleteAuto} />
+          <CarCard key={auto.id} car={auto} />
         ))}
       </div>
     </div>

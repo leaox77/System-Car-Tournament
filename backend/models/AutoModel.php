@@ -125,5 +125,10 @@ class AutoModel {
             $this->ascenderAuto($auto['id'], $division_id);
         }
     }
+
+    public function addFoto($auto_id, $url) {
+        $sql = "INSERT INTO fotos (auto_id, url) VALUES ($auto_id, '$url')";
+        return $this->conn->query($sql);
+    }
 }
 ?>

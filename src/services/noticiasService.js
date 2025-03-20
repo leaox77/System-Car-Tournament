@@ -1,16 +1,20 @@
 import api from './api';
 
-export const getNoticias = async () => {
-  const response = await api.get('/index.php?controller=noticia&action=getNoticias');
-  return response.data;
-};
+export const addNoticia = async (noticiaData, fotos) => {
+  const formData = new FormData();
+  formData.append('titulo', noticiaData.titulo);
+  formData.append('contenido', noticiaData.contenido);
 
-export const addNoticia = async (noticia) => {
-  const response = await api.post('/index.php?controller=noticia&action=addNoticia', noticia);
-  return response.data;
-};
+  if (fotos) {
+    fotos.forEach((foto) => {
+      formData.append('fotos[]', foto);
+    });
+  }
 
-export const hideNoticia = async (id) => {
-  const response = await api.post('/index.php?controller=noticia&action=hideNoticia', { id });
+  const response = await api.post('/index.php?controller=noticia&action=addNoticia', formData, {
+    headers: {
+      'Content-Type': 'multipart/form-data',
+    },
+  });
   return response.data;
 };

@@ -20,7 +20,11 @@ const StandingsTable = ({ division, autos }) => {
               <tr key={auto.id} className="border-b border-white/10">
                 <td className="py-3 px-4">{index + 1}</td>
                 <td className="py-3 px-4">
-                  <img src={auto.foto_url} alt={auto.nombre} className="w-12 h-12 object-cover rounded" />
+                  <img
+                    src={auto.fotos?.[0]?.url || 'https://via.placeholder.com/150'}
+                    alt={auto.nombre}
+                    className="w-12 h-12 object-cover rounded"
+                  />
                 </td>
                 <td className="py-3 px-4">{auto.nombre}</td>
                 <td className="py-3 px-4">{auto.puntos}</td>

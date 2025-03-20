@@ -9,6 +9,7 @@ const Home = () => {
     titulo: '',
     contenido: '',
   });
+  const [fotos, setFotos] = useState([]);
 
   useEffect(() => {
     fetchNoticias();
@@ -20,10 +21,15 @@ const Home = () => {
   };
 
   const handleAddNoticia = async () => {
-    await addNoticia(newNoticia);
+    await addNoticia(newNoticia, fotos);
     fetchNoticias();
     setIsAdding(false);
     setNewNoticia({ titulo: '', contenido: '' });
+    setFotos([]);
+  };
+
+  const handleFileChange = (e) => {
+    setFotos([...e.target.files]);
   };
 
   const handleHideNoticia = async (id) => {
@@ -58,6 +64,12 @@ const Home = () => {
               value={newNoticia.contenido}
               onChange={(e) => setNewNoticia({ ...newNoticia, contenido: e.target.value })}
               className="w-full bg-dark text-white px-4 py-2 rounded h-32"
+            />
+            <input
+              type="file"
+              multiple
+              onChange={handleFileChange}
+              className="bg-dark text-white px-4 py-2 rounded"
             />
             <button
               onClick={handleAddNoticia}
